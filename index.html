@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Genex Space Farming Kit</title>
+  <meta name="description" content="Offline-first Genex Space Farming Kit: DHT11 + soil moisture sensing, PWM Red/Blue LEDs, pump control, and a local web dashboard over device AP." />
+  <style>
+    :root{ --bg:#0b0c10; --panel:#121821; --muted:#9fb3c3; --text:#eaf2ff; --acc:#66fcf1; --acc2:#45a29e; --card:#151d28; --border:#223042; }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,sans-serif; background:var(--bg); color:var(--text);}    
+    a{color:var(--acc); text-decoration:none}
+    .wrap{max-width:1100px; margin:0 auto; padding:20px}
+    header{display:flex; align-items:center; gap:16px; padding:18px 0;}
+    header img{width:40px; height:40px; object-fit:contain}
+    nav{margin-left:auto; display:flex; gap:16px; flex-wrap:wrap}
+    nav a{color:var(--muted); font-weight:600}
+    .hero{background:linear-gradient(180deg,var(--panel),transparent); border:1px solid var(--border); border-radius:16px; padding:28px; display:grid; gap:14px}
+    .hero h1{margin:0; font-size:clamp(1.6rem,2.2vw,2.2rem); color:var(--acc)}
+    .hero p{margin:.25rem 0; color:var(--muted)}
+    .cta{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px}
+    .btn{border:1px solid var(--border); background:var(--card); color:var(--text); padding:10px 14px; border-radius:10px; font-weight:700}
+    .btn.primary{background:linear-gradient(180deg,var(--acc),var(--acc2)); color:#03131a; border:0}
+    .grid{display:grid; gap:16px; grid-template-columns:1fr; margin-top:20px}
+    @media (min-width:900px){ .grid{grid-template-columns:1fr 1fr} }
+    .card{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:18px;}
+    .card h2{margin:.2rem 0 0.6rem; font-size:1.1rem; color:var(--acc)}
+    ul{margin:.4rem 0 .8rem 1.2rem}
+    .kittable{width:100%; border-collapse:collapse; margin-top:10px}
+    .kittable th,.kittable td{border:1px solid var(--border); padding:10px; text-align:left}
+    .kittable th{background:#101621; color:var(--muted)}
+    .note{font-size:.9rem; color:var(--muted)}
+    footer{margin:28px 0 12px; color:var(--muted); font-size:.9rem}
+    code{background:#0e151f; border:1px solid var(--border); padding:2px 6px; border-radius:6px}
+    pre{background:#0e151f; border:1px solid var(--border); padding:12px; border-radius:10px; overflow:auto}
+    .warning{background:#1d1520; border:1px solid #6a2941; padding:12px; border-radius:10px; color:#ffcbd8}
+    .ok{background:#12231a; border:1px solid #1e5a40; padding:12px; border-radius:10px; color:#c5ffe2}
+    .imgwrap{background:#0e151f; border:1px solid var(--border); border-radius:12px; padding:10px}
+    img.board{width:100%; height:auto; display:block; border-radius:8px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img src="logo.png" alt="Genex Space Logo"/>
+      <div><strong>Genex Space</strong></div>
+      <nav>
+        <a href="#about">About</a>
+        <a href="#wifi">Wi‑Fi</a>
+        <a href="#pins">Pins</a>
+        <a href="#kit">Kit</a>
+        <a href="#quickstart">Quick Start</a>
+        <a href="#api">API</a>
+        <a href="#layout">Board</a>
+        <a href="MANUAL.md">Manual</a>
+        <a href="code/space_farm_final.ino">Firmware</a>
+      </nav>
+    </header>
+
+    <section class="hero" id="about">
+      <h1>Genex Space Farming Kit</h1>
+      <p>Measure temperature, humidity, and soil moisture, and control a water pump plus <strong>Red/Blue</strong> grow LEDs. The dashboard runs offline on the device’s own access point.</p>
+      <div class="cta">
+        <a class="btn primary" href="/">Open Dashboard</a>
+        <a class="btn" href="MANUAL.md">Read the Manual</a>
+        <a class="btn" href="code/space_farm_final.ino">Open Firmware</a>
+      </div>
+      <p class="note">Charts use native <code>&lt;canvas&gt;</code> (no external libraries). The device serves everything locally.</p>
+    </section>
+
+    <section class="grid" id="wifi">
+      <div class="card">
+        <h2>Device Wi‑Fi (AP) Credentials</h2>
+        <p>On boot, the kit starts a secured access point with a unique SSID/password derived from <code>uniqueID</code>:</p>
+        <pre><code>String AP_SSID = String("GenexFarmkit_") + uniqueID;
+String AP_PASS = String("12345678") + uniqueID;  // password also includes ID</code></pre>
+        <p class="note">Example (<code>uniqueID = AB12</code>) → SSID: <code>GenexFarmkit_AB12</code> · Password: <code>12345678AB12</code></p>
+        <div class="ok">Connect to the AP and open <code>http://192.168.4.1/</code> to access the dashboard.</div>
+      </div>
+      <div class="card" id="pins">
+        <h2>Default Pin Mapping</h2>
+        <pre><code>#define DHTPIN   27      // DHT11 Temperature/Humidity sensor
+#define DHTTYPE  DHT11
+#define SOIL_PIN 34      // Soil moisture sensor (ADC)
+#define RED_LED  14      // Red LED (PWM)
+#define BLUE_LED 13      // Blue LED (PWM)
+#define PUMP_PIN 4       // Pump driver pin</code></pre>
+        <p class="note">These defaults are used by <code>code/space_farm_final.ino</code>. Adjust as needed for your build.</p>
+      </div>
+    </section>
+
+    <section class="grid" id="kit">
+      <div class="card">
+        <h2>Kit Contents</h2>
+        <ol>
+          <li>ESP32</li>
+          <li>DHT11</li>
+          <li>Soil moisture sensor</li>
+          <li>Wall adaptor</li>
+          <li>Main control board</li>
+          <li>LED Strips — Red and Blue</li>
+          <li>Laser cut enclosure</li>
+          <li>Screws and standoffs</li>
+          <li>Net pots</li>
+          <li>Water reservoir and tube</li>
+          <li>Pump</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h2>Suggested Sensors / Modules</h2>
+        <table class="kittable">
+          <thead><tr><th>Sensor / Module</th><th>Suggested Model</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Temperature/Humidity</td><td>DHT11 / DHT22</td><td>DHT22 recommended for accuracy</td></tr>
+            <tr><td>Soil Moisture</td><td>Capacitive Analog Probe</td><td>Connect to ADC pin (GPIO34)</td></tr>
+            <tr><td>Light Intensity</td><td>BH1750 / LDR</td><td>I²C (BH1750) or analog (LDR)</td></tr>
+            <tr><td>Air Quality</td><td>MQ‑135 / SGP30</td><td>Requires calibration; I²C or analog</td></tr>
+            <tr><td>Pump</td><td>5V/12V DC Pump</td><td>Use MOSFET + flyback diode; common ground</td></tr>
+            <tr><td>LEDs</td><td>Red/Blue Grow LEDs</td><td>PWM on pins 13 & 14</td></tr>
+            <tr><td>Expansion</td><td>I²C sensors</td><td>BMP280, BME280, CCS811, etc.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="grid" id="quickstart">
+      <div class="card">
+        <h2>Quick Start</h2>
+        <ol>
+          <li>Flash <code>code/space_farm_final.ino</code> (Arduino IDE) and power the board.</li>
+          <li>Join Wi‑Fi: look for <code>GenexFarmkit_&lt;ID&gt;</code>, password <code>12345678&lt;ID&gt;</code>.</li>
+          <li>Open <code>http://192.168.4.1/</code> in your browser.</li>
+          <li>View sensors, adjust Red/Blue LEDs, and test the pump.</li>
+        </ol>
+        <p class="note">For pumps &gt;5V, use a separate supply and ensure <em>common ground</em> with ESP32. Add a flyback diode across the pump.</p>
+      </div>
+      <div class="card" id="api">
+        <h2>Firmware API (HTTP)</h2>
+        <table class="kittable">
+          <thead><tr><th>Endpoint</th><th>Method</th><th>Params</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>/api/sensors</td><td>GET</td><td>—</td><td>Returns JSON: <code>{ temp, hum, moisture, dht_ok, soil_ok }</code></td></tr>
+            <tr><td>/api/led/red</td><td>POST</td><td><code>v=0..255</code> or <code>auto=1</code></td><td>Red LED manual or AUTO</td></tr>
+            <tr><td>/api/led/blue</td><td>POST</td><td><code>v=0..255</code> or <code>auto=1</code></td><td>Blue LED manual or AUTO</td></tr>
+            <tr><td>/api/pump</td><td>POST</td><td><code>state=on|off</code> or <code>auto=1</code></td><td>Pump manual or AUTO</td></tr>
+            <tr><td>/api/sensor/disable</td><td>POST</td><td><code>dht=1</code> or <code>soil=1</code></td><td>Manually disable a sensor</td></tr>
+            <tr><td>/api/sensor/enable</td><td>POST</td><td><code>dht=1</code> or <code>soil=1</code></td><td>Re‑enable a sensor</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" id="layout">
+      <h2>Board Layout</h2>
+      <div class="imgwrap">
+        <img class="board" src="board_layout.png" alt="Genex Space Farming Kit Board Layout"/>
+      </div>
+      <p class="note">Headers: ADC1–ADC3 (analog), PN17–PN23 (digital), dedicated Red/Blue LED outputs, Pump OUT, and I²C (SDA/SCL).</p>
+    </section>
+
+    <footer>
+      © 2025 Genex Space. Built for hands‑on space education.
+    </footer>
+  </div>
+</body>
+</html>
